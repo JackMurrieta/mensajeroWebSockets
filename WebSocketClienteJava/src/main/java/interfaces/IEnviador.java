@@ -4,18 +4,14 @@
  */
 package interfaces;
 
-import java.util.List;
 import valdez.alejandro.entidades.Message;
-import valdez.alejandro.entidades.User;
 
 /**
- *
- * @author juanpheras
+ * Interfaz para manejar el envío de mensajes.
+ * @author Juan Pablo Heras
  */
-public interface ISuscriptor {
+public interface IEnviador {
     
-    void onMensajeRecibido(Message mensaje);
-    void onListaUsuariosActualizada(List<User> usuarios);
-    void onError(String error);
+    void enviarMensajeDesdeView(Message mensaje);
     
 }

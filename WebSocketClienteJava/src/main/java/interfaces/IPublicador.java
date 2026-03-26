@@ -4,30 +4,22 @@
  */
 package interfaces;
 
+import java.util.List;
+import valdez.alejandro.entidades.Message;
+import valdez.alejandro.entidades.User;
+
 /**
  *
  * @author Juan Pablo Heras 
  */
 public interface IPublicador {
         
-    /**
-     * Método que permite suscribirse a un objeto que quiere observar a este Publicador.
-     * @param suscriptor Objeto que implementa la interfaz ISuscriptor, representa a un
-     * observador de este Publicador.
-     */
-    public abstract void suscribirse(ISuscriptor suscriptor);
+    void notificarMensaje(Message m);
     
-    /**
-     * Método que permite a un objeto suscriptor desuscribirse para ya no observar a este Publicador.
-     * @param suscriptor Objeto que implementa la interfaz ISuscriptor, representa a un
-     * observador de este Publicador.
-     */
-    public abstract void desuscribirse(ISuscriptor suscriptor);
+    void notificarListaActualizada();
     
-    /**
-     * Método que notifica a todos en la lista de suscriptores para que llamen a su metodo actualizar.
-     */
-    public abstract void notificar();
+    void notificarError(String err);
     
+    List<User> obtenerListaUsuariosConectados();
     
 }
