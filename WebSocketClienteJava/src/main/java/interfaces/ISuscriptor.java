@@ -4,16 +4,18 @@
  */
 package interfaces;
 
+import java.util.List;
+import valdez.alejandro.entidades.Message;
+import valdez.alejandro.entidades.User;
+
 /**
  *
  * @author juanpheras
  */
 public interface ISuscriptor {
     
-    /**
-     * Método para actualizar la vista según su parametro.
-     */
-    public abstract void actualizar();
-    
+    void onMensajeRecibido(Message mensaje);
+    void onListaUsuariosActualizada(List<User> usuarios);
+    void onError(String error);
     
 }

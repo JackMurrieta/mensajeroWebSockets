@@ -1,6 +1,9 @@
 package views;
 
 import interfaces.ISuscriptor;
+import java.util.List;
+import valdez.alejandro.entidades.Message;
+import valdez.alejandro.entidades.User;
 
 /**
  *
@@ -170,8 +173,19 @@ public class ChatLobby extends javax.swing.JFrame implements ISuscriptor {
     private javax.swing.JTextField textMensaje;
     // End of variables declaration//GEN-END:variables
 
+    
     @Override
-    public void actualizar() {
+    public void onMensajeRecibido(Message mensaje) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void onListaUsuariosActualizada(List<User> usuarios) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void onError(String error) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
