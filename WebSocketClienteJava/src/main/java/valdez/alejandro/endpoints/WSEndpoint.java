@@ -16,7 +16,7 @@ public class WSEndpoint {
     private Session sesion;
     
     public WSEndpoint(){
-        serverURI = URI.create("ws://localhost:8080/WebsocketTomee9/chat");
+        serverURI = URI.create("wss://uneffaced-nonregimented-karlie.ngrok-free.dev/chat");
         try {
             WebSocketContainer container =  ContainerProvider.getWebSocketContainer();
             sesion = container.connectToServer(this,serverURI);
