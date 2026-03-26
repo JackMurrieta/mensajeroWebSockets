@@ -32,7 +32,7 @@ public class ChatWebSocket {
             switch (msg.type) {
                 case CONNECT:
                     // En el primer mensaje, sí recibimos el nombre para registrarlo
-                    chatService.addUser(msg.from, "1234", session);
+                    chatService.addUser(msg.from, session);
                     break;
 
                 case BROADCAST:

@@ -23,7 +23,7 @@ public class ChatService {
     private ObjectMapper mapper = new ObjectMapper();
 
     //Agregar usuario
-    public void addUser(String username, String password, Session session) {
+    public void addUser(String username, Session session) {
 
         if (users.containsKey(username)) {
             sendError(session, "El usuario ya existe");
@@ -77,7 +77,7 @@ public class ChatService {
                 e.printStackTrace();
             }
         } else {
-            // Opcional: Avisar al emisor que el destinatario no está conectado
+            //  Avisar al emisor que el destinatario no está conectado
         }
     }
 
