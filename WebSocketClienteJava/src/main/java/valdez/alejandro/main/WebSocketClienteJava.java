@@ -1,8 +1,8 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- */
-
 package valdez.alejandro.main;
+
+import valdez.alejandro.endpoints.WSEndpoint;
+import valdez.alejandro.whatsapp.WhatsappActions;
+import views.ChatLobby;
 
 /**
  *
@@ -11,6 +11,10 @@ package valdez.alejandro.main;
 public class WebSocketClienteJava {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        WSEndpoint wsEndPoint = new WSEndpoint();
+        
+        WhatsappActions whaa = new WhatsappActions(wsEndPoint);
+        
+        
     }
 }

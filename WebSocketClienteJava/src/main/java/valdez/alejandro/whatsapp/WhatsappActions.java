@@ -1,8 +1,10 @@
 package valdez.alejandro.whatsapp;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 import valdez.alejandro.endpoints.WSEndpoint;
+import valdez.alejandro.entidades.Message;
+import valdez.alejandro.entidades.User;
 
 /**
  *
@@ -15,11 +17,15 @@ public class WhatsappActions {
         this.endPoint = endPoint;
     }
     
-    public void enviarMsj(String msj){
-        try {
-            endPoint.getSesion().getBasicRemote().sendText(msj);
-        } catch (Exception e) {
-            Logger.getLogger(WhatsappActions.class.getName()).log(Level.SEVERE,null, e);
-        }
+    public void enviarMsjGrupal(Message message){
+
+    }
+    
+    public void enviarMsjParaUsuarioEspecifico(User user, Message message){
+        
+    }
+    
+    public List<User> obtenerListaUsuariosConectados(){
+        return new ArrayList();
     }
 }
