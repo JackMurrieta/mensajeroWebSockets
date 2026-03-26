@@ -2,9 +2,11 @@ package valdez.alejandro.endpoints;
 
 import jakarta.websocket.ClientEndpoint;
 import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.OnMessage;
 import jakarta.websocket.Session;
 import jakarta.websocket.WebSocketContainer;
 import java.net.URI;
+import valdez.alejandro.whatsapp.WhatsappActions;
 
 /**
  *
@@ -14,6 +16,7 @@ import java.net.URI;
 public class WSEndpoint {
     private URI serverURI;
     private Session sesion;
+    private WhatsappActions actions;
     
     public WSEndpoint(){
         serverURI = URI.create("wss://uneffaced-nonregimented-karlie.ngrok-free.dev/chat");
@@ -27,6 +30,18 @@ public class WSEndpoint {
 
     public Session getSesion() {
         return sesion;
+    }
+
+    public void setActions(WhatsappActions actions) {
+        this.actions = actions;
+    }
+    
+    
+    @OnMessage
+    public void onMessage(String mensaje) {
+        if (actions != null) {
+            actions.recibirMensaje(mensaje);
+        }
     }
     
 }

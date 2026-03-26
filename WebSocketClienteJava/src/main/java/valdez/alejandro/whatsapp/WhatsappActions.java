@@ -1,6 +1,11 @@
 package valdez.alejandro.whatsapp;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import interfaces.IEnviador;
 import interfaces.IPublicador;
 import interfaces.ISuscriptor;
 import jakarta.websocket.OnMessage;
@@ -14,8 +19,9 @@ import valdez.alejandro.entidades.User;
 /**
  * @author janot
  */
-public class WhatsappActions implements IPublicador{
-private WSEndpoint endPoint;
+public class WhatsappActions implements IPublicador, IEnviador {
+
+    private WSEndpoint endPoint;
     private Gson gson = new Gson();
     private List<User> usuariosConectados = new ArrayList<>();
     private List<ISuscriptor> observers = new ArrayList<>();
@@ -31,12 +37,47 @@ private WSEndpoint endPoint;
     @OnMessage
     public void recibirMensaje(String mensajeJson) {
         try {
+            System.out.println("JSON recibido: " + mensajeJson);
+
+            if (!mensajeJson.trim().startsWith("{")) {
+                Message msgPlano = new Message("Servidor", null, mensajeJson, null);
+                notificarMensaje(msgPlano);
+                return;
+            }
+
+            JsonObject json = JsonParser.parseString(mensajeJson).getAsJsonObject();
+            String tipo = json.has("type") ? json.get("type").getAsString() : "";
+
+            
+            //
+            if ("USER_LIST".equals(tipo)) {
+                List<User> usuarios = new ArrayList<>();
+                JsonArray arr = json.getAsJsonArray("users");
+
+                for (JsonElement e : arr) {
+                    usuarios.add(new User(e.getAsString(), null));
+                }
+
+                usuariosConectados = usuarios;
+                notificarListaActualizada();
+                return;
+            }
+
+            if ("SYSTEM".equals(tipo)) {
+                Message sistema = new Message("Sistema", null, json.get("content").getAsString(), null);
+                notificarMensaje(sistema);
+                return;
+            }
             Message msg = gson.fromJson(mensajeJson, Message.class);
+
+            if (msg == null || msg.getType() == null) {
+                return;
+            }
 
             switch (msg.getType()) {
                 case CONNECT:
                     // Creamos el usuario y lo metemos a la lista local
-                    User nuevoUsuario = new User(msg.getFrom(), null); 
+                    User nuevoUsuario = new User(msg.getFrom(), null);
                     usuariosConectados.add(nuevoUsuario);
                     notificarListaActualizada();
                     notificarMensaje(msg); // Opcional: avisar que "X se conectó"
@@ -50,13 +91,22 @@ private WSEndpoint endPoint;
                     break;
 
                 case USER_LIST:
-                    // Si el server manda la lista completa (ej. en el content como JSON)
-                    // Aquí podrías parsear msg.getContent() si viene como array de nombres
-                    System.out.println("Lista completa recibida: " + msg.getContent());
+                    List<User> usuarios = new ArrayList<>();
+
+                    JsonArray arr = json.getAsJsonArray("users");
+
+                    for (JsonElement e : arr) {
+                        String nombre = e.getAsString();
+                        usuarios.add(new User(nombre, null));
+                    }
+
+                    usuariosConectados = usuarios;
+                    System.out.println("Lista completa recibida: " + usuariosConectados);
+                    notificarListaActualizada();
                     break;
 
                 case BROADCAST:
-                    
+
                 case PRIVATE:
                     // Estos solo se pintan en el chat
                     notificarMensaje(msg);
@@ -99,8 +149,14 @@ private WSEndpoint endPoint;
             o.onError(err);
         }
     }
+
     @Override
     public List<User> obtenerListaUsuariosConectados() {
         return new ArrayList<>(usuariosConectados);
+    }
+
+    @Override
+    public void enviarMensajeDesdeView(Message mensaje) {
+        enviarMsj(mensaje);
     }
 }

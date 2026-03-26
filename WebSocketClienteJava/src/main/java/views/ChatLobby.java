@@ -1,7 +1,12 @@
 package views;
 
+import interfaces.IEnviador;
 import interfaces.ISuscriptor;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import valdez.alejandro.entidades.Message;
 import valdez.alejandro.entidades.User;
 
@@ -11,12 +16,78 @@ import valdez.alejandro.entidades.User;
  */
 public class ChatLobby extends javax.swing.JFrame implements ISuscriptor {
 
+    private IEnviador enviador;
+    private String usuarioActual;
+
+    private List<User> usuariosActuales = new ArrayList<>();
+
     /**
      * Creates new form Register
      */
     public ChatLobby() {
         initComponents();
         setLocationRelativeTo(this);
+
+        listUsuarios.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            @Override
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                listUsuariosValueChanged(evt);
+            }
+        });
+
+    }
+
+    public void setEnviador(IEnviador enviador) {
+        this.enviador = enviador;
+    }
+
+    private boolean nombreYaExiste(String nombre) {
+        for (User user : usuariosActuales) {
+            if (user.getUsername().equalsIgnoreCase(nombre)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void iniciarSesion() {
+        solicitarNombreUsuario();
+    }
+
+    private void solicitarNombreUsuario() {
+        boolean valido = false;
+
+        while (!valido) {
+            String nombre = JOptionPane.showInputDialog(this, "Ingresa tu nombre de usuario:");
+
+            if (nombre == null) {
+                System.exit(0);
+            }
+
+            nombre = nombre.trim();
+
+            if (nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "El nombre no puede estar vacío.");
+                continue;
+            }
+
+//            if (nombreYaExiste(nombre)) {
+//                JOptionPane.showMessageDialog(this, "Ese nombre ya está en uso.");
+//                continue;
+//            }
+
+            this.usuarioActual = nombre;
+            valido = true;
+        }
+
+        Message connectMsg = new Message(
+                usuarioActual,
+                null,
+                "Se conectó al chat",
+                valdez.alejandro.enums.MessageType.CONNECT
+        );
+
+        enviador.enviarMensajeDesdeView(connectMsg);
     }
 
     /**
@@ -68,8 +139,18 @@ public class ChatLobby extends javax.swing.JFrame implements ISuscriptor {
         btnEnviar.setFont(new java.awt.Font("Helvetica Neue", 1, 13)); // NOI18N
         btnEnviar.setForeground(new java.awt.Color(255, 255, 255));
         btnEnviar.setText("Enviar");
+        btnEnviar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEnviarActionPerformed(evt);
+            }
+        });
 
         btnMensajeTodos.setText("Mensaje para todos");
+        btnMensajeTodos.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMensajeTodosActionPerformed(evt);
+            }
+        });
 
         lblTitulo.setFont(new java.awt.Font("Helvetica Neue", 1, 24)); // NOI18N
         lblTitulo.setText("Desktop Chat");
@@ -155,6 +236,51 @@ public class ChatLobby extends javax.swing.JFrame implements ISuscriptor {
         // TODO add your handling code here:
     }//GEN-LAST:event_textMensajeActionPerformed
 
+    private void btnEnviarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEnviarActionPerformed
+        String contenido = textMensaje.getText().trim();
+
+        if (contenido.isEmpty()) {
+            onError("Escribe un mensaje");
+            return;
+        }
+
+        boolean paraTodos = btnMensajeTodos.isSelected();
+        String destino = paraTodos ? null : listUsuarios.getSelectedValue();
+
+        if (!paraTodos && destino == null) {
+            onError("Selecciona un usuario o usa 'Mensaje para todos'.");
+            return;
+        }
+
+        Message mensaje = new Message(
+                usuarioActual,
+                destino,
+                contenido,
+                paraTodos
+                        ? valdez.alejandro.enums.MessageType.BROADCAST
+                        : valdez.alejandro.enums.MessageType.PRIVATE
+        );
+
+        enviador.enviarMensajeDesdeView(mensaje);
+
+        textMensaje.setText("");
+    }//GEN-LAST:event_btnEnviarActionPerformed
+
+    /**
+     * Método para ajustar el destinatario al chat global. Si hay un usuario
+     * seleccionado lo deselecciona.
+     *
+     * @param evt
+     */
+    private void btnMensajeTodosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMensajeTodosActionPerformed
+        if (btnMensajeTodos.isSelected()) {
+            listUsuarios.clearSelection();
+            lblDestinoMsj.setText("Todos");
+        } else {
+            lblDestinoMsj.setText("User");
+        }
+    }//GEN-LAST:event_btnMensajeTodosActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEnviar;
@@ -173,19 +299,63 @@ public class ChatLobby extends javax.swing.JFrame implements ISuscriptor {
     private javax.swing.JTextField textMensaje;
     // End of variables declaration//GEN-END:variables
 
-    
     @Override
     public void onMensajeRecibido(Message mensaje) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        SwingUtilities.invokeLater(() -> {
+            String texto;
+
+            if (mensaje.getTo() == null) {
+                texto = mensaje.getFrom() + " (Todos): " + mensaje.getContent();
+            } else {
+                texto = mensaje.getFrom() + " (Privado): " + mensaje.getContent();
+            }
+
+            jTextArea1.append(texto + "\n");
+        });
     }
 
     @Override
     public void onListaUsuariosActualizada(List<User> usuarios) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        SwingUtilities.invokeLater(() -> {
+            usuariosActuales = usuarios; // 🔥 aquí se actualiza
+
+            DefaultListModel<String> model = new DefaultListModel<>();
+            for (User u : usuarios) {
+                model.addElement(u.getUsername());
+            }
+
+            listUsuarios.setModel(model);
+        });
     }
 
     @Override
     public void onError(String error) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        JOptionPane.showMessageDialog(this, error, "Error", JOptionPane.ERROR_MESSAGE);
     }
+
+    /**
+     * Listener para cuando se seleccione un usuario para ajustar el
+     * destinatario. Además se deselecciona el botón de "Mensaje para todos"
+     *
+     * @param evt
+     */
+    private void listUsuariosValueChanged(javax.swing.event.ListSelectionEvent evt) {
+        if (!evt.getValueIsAdjusting()) {
+            String seleccionado = listUsuarios.getSelectedValue();
+
+            if (seleccionado != null) {
+                lblDestinoMsj.setText(seleccionado);
+                btnMensajeTodos.setSelected(false);
+            }
+        }
+    }
+
+//    private void btnMensajeTodosActionPerformed(java.awt.event.ActionEvent evt) {
+//        if (btnMensajeTodos.isSelected()) {
+//            listUsuarios.clearSelection();
+//            lblDestinoMsj.setText("Todos");
+//        } else {
+//            lblDestinoMsj.setText("User");
+//        }
+//    }
 }
