@@ -1,6 +1,8 @@
 package edu.itson.jackMurrieta.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.itson.jackMurrieta.model.Message;
+import edu.itson.jackMurrieta.model.MessageType;
 import edu.itson.jackMurrieta.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.websocket.Session;
@@ -21,7 +23,7 @@ public class ChatService {
     private ObjectMapper mapper = new ObjectMapper();
 
     //Agregar usuario
-    public void addUser(String username, String password, Session session) {
+    public void addUser(String username, Session session) {
 
         if (users.containsKey(username)) {
             sendError(session, "El usuario ya existe");
@@ -57,11 +59,25 @@ public class ChatService {
     }
 
     //Mensaje privado
-    public void sendPrivate(String to, String message) {
-        User user = users.get(to);
+    public void sendPrivate(String from, String to, String content) {
+        User recipient = users.get(to);
 
-        if (user != null) {
-            user.session.getAsyncRemote().sendText(message);
+        if (recipient != null && recipient.session.isOpen()) {
+            try {
+                // Creamos un objeto de respuesta tipo PRIVATE
+                Message privateMsg = new Message();
+                privateMsg.type = MessageType.PRIVATE;
+                privateMsg.from = from; // Quién lo envió originalmente
+                privateMsg.content = content;
+
+                String json = mapper.writeValueAsString(privateMsg);
+                recipient.session.getAsyncRemote().sendText(json);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            //  Avisar al emisor que el destinatario no está conectado
         }
     }
 

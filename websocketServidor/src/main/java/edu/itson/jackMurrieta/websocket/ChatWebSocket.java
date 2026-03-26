@@ -26,23 +26,27 @@ public class ChatWebSocket {
         try {
             Message msg = mapper.readValue(json, Message.class);
 
-            switch (msg.type) {
+            // Obtenemos el nombre real vinculado a esta sesión
+            String sender = chatService.getUsername(session);
 
+            switch (msg.type) {
                 case CONNECT:
-                    chatService.addUser(msg.from, "1234", session);
+                    // En el primer mensaje, sí recibimos el nombre para registrarlo
+                    chatService.addUser(msg.from, session);
                     break;
 
                 case BROADCAST:
-                    String username = chatService.getUsername(session);
-                    chatService.broadcast(username + ": " + msg.content);
+                    // Enviamos el mensaje a todos, inyectando el nombre del emisor real
+                    if (sender != null) {
+                        chatService.broadcast(sender + ": " + msg.content);
+                    }
                     break;
 
                 case PRIVATE:
-                    String fromUser = chatService.getUsername(session);
-                    chatService.sendPrivate(
-                            msg.to,
-                            "[Privado] " + fromUser + ": " + msg.content
-                    );
+                    // Enviamos privado: (De quién, Para quién, Qué dice)
+                    if (sender != null && msg.to != null) {
+                        chatService.sendPrivate(sender, msg.to, msg.content);
+                    }
                     break;
 
                 case USER_LIST:
